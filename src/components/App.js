@@ -1,8 +1,9 @@
 import React from 'react';
 import './app.scss';
+import Game from './game/Game';
 
 function App() {
-    return <h1>Hello world a!</h1>;
+    return <Game />;
 }
 
 export default App;
