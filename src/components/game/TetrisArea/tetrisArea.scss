@@ -18,8 +18,8 @@
 
     .tetris-piece {
         position: absolute;
-        width: 10%;
-        height: 5%;
+        width: calc(10% - 4px);
+        height: calc(5% - 4px);
         top: 0;
         left: 0;
         background: orange;

@@ -5,18 +5,20 @@ const EmptyGrid = (props) => {
     const emptyCells = [];
 
     for (let i = 0; i < gridDimension; i++) {
-        emptyCells.push((
-            <div
-                key={`empty-cell-${i}`}
-                className="empty-cell"
-                style={{
-                    width: `${100 / props.noCols}%`,
-                    height: `${100 / props.noRows}%`
-                }}
-            >
+        emptyCells.push(
+            (
+                <div
+                    key={`empty-cell-${i}`}
+                    className="empty-cell"
+                    style={{
+                        width: `${100 / props.noCols}%`,
+                        height: `${100 / props.noRows}%`
+                    }}
+                >
 
-            </div>
-        ));
+                </div>
+            )
+        );
     }
 
     return <React.Fragment>{emptyCells}</React.Fragment>;

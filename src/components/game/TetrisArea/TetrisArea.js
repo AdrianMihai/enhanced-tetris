@@ -16,26 +16,116 @@ const createEmptyGrid = (noRows, noCols) => {
     return grid;
 };
 
+const generateRandomPiece = () => {
+    return {
+        code: 1,
+        indexes: [
+            [0, 6],
+            [1, 3],
+            [1, 4],
+            [1, 5],
+            [1, 6]
+        ]
+    };
+};
+
+const placePieceInGrid = (grid, piece) => {
+    for (let idx in piece.indexes) {
+        const rowIndex = piece.indexes[idx][0];
+        const colIndex = piece.indexes[idx][1];
+        grid[rowIndex][colIndex] = piece.code;
+    }
+}
+
+const removeCurrentMovingPieceFromGrid = (grid, currentPiece) => {
+    for (let idx in currentPiece.indexes) {
+        let rowIndex = currentPiece.indexes[idx][0];
+        let colIndex = currentPiece.indexes[idx][1];
+
+        grid[rowIndex][colIndex] = 0;
+    }
+}
+
+const hasCurrentMovingPieceReachedBottom = (grid, currentPiece) => {
+    for (let idx in currentPiece.indexes) {
+        const rowIndex = currentPiece.indexes[idx][0]
+
+        if (rowIndex === (grid.length - 1)) {
+            return true;
+        }
+
+        const colIndex = currentPiece.indexes[idx][1];
+
+        if (grid[rowIndex + 1][colIndex] > 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+const transposeCurrentPiece = (grid, currentPiece) => {
+    removeCurrentMovingPieceFromGrid(grid, currentPiece);
+
+    if (hasCurrentMovingPieceReachedBottom(grid, currentPiece)) {
+        placePieceInGrid(grid, currentPiece);
+        return null;
+    }
+
+    for (let idx in currentPiece.indexes) {
+        currentPiece.indexes[idx][0] += 1;
+
+        let rowIndex = currentPiece.indexes[idx][0];
+        let colIndex = currentPiece.indexes[idx][1];
+
+        grid[rowIndex][colIndex] = currentPiece.code;
+    }
+
+    return currentPiece;
+}
+
+// const moveCurrentMovingPiecetoLeft = (grid, currentPiece) => {
+
+//     removeCurrentMovingPieceFromGrid(grid, currentPiece);
+
+//     for (let idx in currentPiece.indexes) {
+//         currentPiece.indexes[idx][1] -= 1; 
+//     }
+//     placePieceInGrid(grid, curren)
+
+// }
+
+const updateGrid = (grid, movingPiece) => {
+    const newGrid = grid.slice(0, grid.length);
+
+    console.log(movingPiece);
+
+    if (!movingPiece.current) {
+        movingPiece.current = generateRandomPiece();
+        placePieceInGrid(grid, movingPiece.current);
+    }
+    else {
+        movingPiece.current = transposeCurrentPiece(grid, movingPiece.current);
+    }
+
+    return newGrid;
+};
+
 function TetrisArea(props) {
     const noRows = 20, noCols = 10;
     const [, setGameInterval] = useState(null);
     const [grid, setGrid] = useState(createEmptyGrid(noRows, noCols));
 
-    const currentLine = useRef(0);
+    const currentMovingPiece = useRef(null);
 
     useEffect(() => {
         setGameInterval((interval) => {
             clearInterval(interval);
-            return setInterval(() => {
 
+            return setInterval(() => {
                 setGrid((currentGrid) => {
-                    currentLine.current += 1;
-                    currentGrid[currentLine.current - 1][0] = 0;
-                    currentGrid[currentLine.current][0] = 1;
-                    console.log(currentGrid);
-                    return currentGrid;
+                    return updateGrid(currentGrid, currentMovingPiece);
                 });
-                console.log(props.tickTime);
             }, props.tickTime);
         });
     }, [props, props.tickTime]);
