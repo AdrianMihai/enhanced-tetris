@@ -6,6 +6,7 @@ console.log(style);
 
 function Game() {
     const [tickTime, setTickTime] = useState(1000);
+    const minTickTime = 100;
 
     useEffect(() => {
         document.addEventListener('keydown', (event) => {
@@ -13,8 +14,8 @@ function Game() {
                 setTickTime((tickTime) => {
                     const nextTickTime = tickTime - 100;
 
-                    if (nextTickTime < 200) {
-                        return 200;
+                    if (nextTickTime < minTickTime) {
+                        return minTickTime;
                     }
 
                     return nextTickTime;
@@ -34,7 +35,7 @@ function Game() {
             <h1>Ticktime: {tickTime}</h1>
             <TetrisArea tickTime={tickTime} />
         </div>
-    )
+    );
 }
 
 export default Game;

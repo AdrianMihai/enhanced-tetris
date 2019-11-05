@@ -84,28 +84,101 @@ const transposeCurrentPiece = (grid, currentPiece) => {
     return currentPiece;
 }
 
-// const moveCurrentMovingPiecetoLeft = (grid, currentPiece) => {
+const canCurrentPieceMoveToLeft = (grid, currentPiece) => {
 
-//     removeCurrentMovingPieceFromGrid(grid, currentPiece);
+    for (let idx in currentPiece.indexes) {
+        const rowIndex = currentPiece.indexes[idx][0];
+        const colIndex = currentPiece.indexes[idx][1];
 
-//     for (let idx in currentPiece.indexes) {
-//         currentPiece.indexes[idx][1] -= 1; 
-//     }
-//     placePieceInGrid(grid, curren)
+        if (grid[rowIndex][colIndex - 1] > 0 || colIndex === 0) {
+            return false;
+        }
+    }
 
-// }
+    return true;
+}
 
-const updateGrid = (grid, movingPiece) => {
+const moveCurrentMovingPiecetoLeft = (grid, piece) => {
+    const currentPiece = piece.current;
+
+    if (currentPiece) {
+        removeCurrentMovingPieceFromGrid(grid, currentPiece);
+        const newGrid = grid.slice(0, grid.length);
+
+        if (canCurrentPieceMoveToLeft(grid, currentPiece)) {
+
+            for (let idx in currentPiece.indexes) {
+                currentPiece.indexes[idx][1] -= 1;
+            }
+        }
+        piece.current = currentPiece;
+        placePieceInGrid(newGrid, currentPiece);
+        return newGrid;
+
+    }
+
+    return grid;
+}
+
+const canCurrentPieceMoveToRight = (grid, currentPiece) => {
+
+    for (let idx in currentPiece.indexes) {
+        const rowIndex = currentPiece.indexes[idx][0];
+        const colIndex = currentPiece.indexes[idx][1];
+
+        if (grid[rowIndex][colIndex + 1] > 0 || colIndex === (grid[0].length - 1)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+const moveCurrentMovingPiecetoRight = (grid, piece) => {
+    const currentPiece = piece.current;
+
+    if (currentPiece) {
+        removeCurrentMovingPieceFromGrid(grid, currentPiece);
+        const newGrid = grid.slice(0, grid.length);
+
+        if (canCurrentPieceMoveToRight(grid, currentPiece)) {
+
+            for (let idx in currentPiece.indexes) {
+                currentPiece.indexes[idx][1] += 1;
+            }
+        }
+        piece.current = currentPiece;
+        placePieceInGrid(newGrid, currentPiece);
+        return newGrid;
+
+    }
+
+    return grid;
+}
+
+const clearCompletedLines = (grid) => {
+    for (let i = 0; i < grid.length; i++) {
+        if (grid[i].indexOf(0) === -1) {
+            grid[i] = grid[i].map(() => 0);
+        }
+    }
+}
+
+const transposeGridDown = (grid, movingPiece) => {
     const newGrid = grid.slice(0, grid.length);
 
-    console.log(movingPiece);
+    clearCompletedLines(newGrid);
 
     if (!movingPiece.current) {
         movingPiece.current = generateRandomPiece();
-        placePieceInGrid(grid, movingPiece.current);
+        placePieceInGrid(newGrid, movingPiece.current);
     }
     else {
-        movingPiece.current = transposeCurrentPiece(grid, movingPiece.current);
+        movingPiece.current = transposeCurrentPiece(newGrid, movingPiece.current);
+
+        if (!movingPiece.current) {
+            return transposeGridDown(newGrid, movingPiece);
+        }
     }
 
     return newGrid;
@@ -119,12 +192,40 @@ function TetrisArea(props) {
     const currentMovingPiece = useRef(null);
 
     useEffect(() => {
+        document.addEventListener('keydown', (event) => {
+            console.log(event);
+
+            setGrid((currentGrid) => {
+                let nextGrid = currentGrid;
+                if (event.key === 'ArrowLeft') {
+                    nextGrid = moveCurrentMovingPiecetoLeft(currentGrid, currentMovingPiece);
+                }
+                else if (event.key === 'ArrowRight') {
+                    nextGrid = moveCurrentMovingPiecetoRight(currentGrid, currentMovingPiece);
+                }
+
+                return nextGrid;
+            })
+        });
+
+        document.addEventListener('keyup', (event) => {
+            if (event.key === 'ArrowUp') {
+
+            }
+        })
+    }, []);
+
+    useEffect(() => {
+        setGrid((currentGrid) => {
+            return transposeGridDown(currentGrid, currentMovingPiece);
+        });
+
         setGameInterval((interval) => {
             clearInterval(interval);
 
             return setInterval(() => {
                 setGrid((currentGrid) => {
-                    return updateGrid(currentGrid, currentMovingPiece);
+                    return transposeGridDown(currentGrid, currentMovingPiece);
                 });
             }, props.tickTime);
         });
