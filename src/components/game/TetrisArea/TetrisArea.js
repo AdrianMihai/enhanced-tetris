@@ -29,6 +29,37 @@ const generateRandomPiece = () => {
     };
 };
 
+const getPiecePivotPosition = (piece) => {
+    let maxRowIndex = -1;
+    let minRowIndex = 20;
+    let maxColIndex = -1;
+    let minColIndex = 10;
+
+    for (let idx in piece.indexes) {
+        const currentBrick = piece.indexes[idx];
+
+        if (currentBrick[0] > maxRowIndex)
+            maxRowIndex = currentBrick[0];
+
+        if (currentBrick[0] < minRowIndex) {
+            minRowIndex = currentBrick[0];
+        }
+
+        if (currentBrick[1] < minColIndex) {
+            minColIndex = currentBrick[1];
+        }
+
+        if (currentBrick[1] > maxColIndex) {
+            maxColIndex = currentBrick[1];
+        }
+    }
+
+    return [
+        minRowIndex + Math.round((maxRowIndex - minRowIndex) / 2),
+        minColIndex + Math.round((maxColIndex - minColIndex) / 2)
+    ];
+}
+
 const placePieceInGrid = (grid, piece) => {
     for (let idx in piece.indexes) {
         const rowIndex = piece.indexes[idx][0];
@@ -156,18 +187,63 @@ const moveCurrentMovingPiecetoRight = (grid, piece) => {
     return grid;
 }
 
+const canPieceRotate = (grid, rotatedPieceIndices) => {
+    for (let idx in rotatedPieceIndices) {
+        const rowIndex = rotatedPieceIndices[idx][0];
+        const colIndex = rotatedPieceIndices[idx][1];
+
+        if (grid[rowIndex][colIndex] > 0 || rowIndex < 0 || rowIndex >= grid.length || colIndex < 0 || colIndex >= grid[0].length) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+const rotatePiece = (grid, piece) => {
+    const currentPiece = piece.current;
+
+    if (currentPiece) {
+        const pivotPoint = getPiecePivotPosition(currentPiece);
+
+        const newGrid = grid.slice(0, grid.length);
+        removeCurrentMovingPieceFromGrid(newGrid, currentPiece);
+
+        const rotatedPiece = [];
+
+        for (let idx in currentPiece.indexes) {
+            rotatedPiece.push([]);
+            rotatedPiece[rotatedPiece.length - 1][0] = pivotPoint[0] + pivotPoint[1] - currentPiece.indexes[idx][1];
+            rotatedPiece[rotatedPiece.length - 1][1] = pivotPoint[1] - pivotPoint[0] + currentPiece.indexes[idx][0];
+        }
+
+        if (canPieceRotate(newGrid, rotatedPiece) === true) {
+            currentPiece.indexes = rotatedPiece;
+            piece.current = currentPiece;
+            placePieceInGrid(newGrid, currentPiece);
+            return newGrid;
+        }
+
+    }
+
+    return grid;
+};
+
 const clearCompletedLines = (grid) => {
+    let noClearedLines = 0;
+
     for (let i = 0; i < grid.length; i++) {
         if (grid[i].indexOf(0) === -1) {
             grid[i] = grid[i].map(() => 0);
+            noClearedLines += 1;
         }
     }
+
+    return noClearedLines;
 }
 
 const transposeGridDown = (grid, movingPiece) => {
     const newGrid = grid.slice(0, grid.length);
-
-    clearCompletedLines(newGrid);
 
     if (!movingPiece.current) {
         movingPiece.current = generateRandomPiece();
@@ -179,6 +255,11 @@ const transposeGridDown = (grid, movingPiece) => {
         if (!movingPiece.current) {
             return transposeGridDown(newGrid, movingPiece);
         }
+    }
+
+    if (clearCompletedLines(newGrid) > 0) {
+        movingPiece.current = null;
+        return transposeGridDown(newGrid, movingPiece);
     }
 
     return newGrid;
@@ -210,7 +291,7 @@ function TetrisArea(props) {
 
         document.addEventListener('keyup', (event) => {
             if (event.key === 'ArrowUp') {
-
+                setGrid((currentGrid) => rotatePiece(currentGrid, currentMovingPiece));
             }
         })
     }, []);

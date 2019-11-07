@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import TetrisArea from './TetrisArea/TetrisArea';
 import * as style from './game.scss';
 
-console.log(style);
-
 function Game() {
     const [tickTime, setTickTime] = useState(1000);
     const minTickTime = 100;
