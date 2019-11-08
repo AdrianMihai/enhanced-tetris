@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './tetrisArea.scss';
 import EmptyGrid from './EmptyGrid';
 import CompletedGrid from './CompletedGrid';
+import { pickRandomPiece, addAlternateFadeEffect, removeAlternateFadeEffect } from '../../../domain/tetrisPiecesCollection';
 
 const createEmptyGrid = (noRows, noCols) => {
     const grid = [];
@@ -17,16 +18,7 @@ const createEmptyGrid = (noRows, noCols) => {
 };
 
 const generateRandomPiece = () => {
-    return {
-        code: 1,
-        indexes: [
-            [0, 6],
-            [1, 3],
-            [1, 4],
-            [1, 5],
-            [1, 6]
-        ]
-    };
+    return pickRandomPiece();
 };
 
 const getPiecePivotPosition = (piece) => {
@@ -79,7 +71,7 @@ const removeCurrentMovingPieceFromGrid = (grid, currentPiece) => {
 
 const hasCurrentMovingPieceReachedBottom = (grid, currentPiece) => {
     for (let idx in currentPiece.indexes) {
-        const rowIndex = currentPiece.indexes[idx][0]
+        const rowIndex = currentPiece.indexes[idx][0];
 
         if (rowIndex === (grid.length - 1)) {
             return true;
@@ -99,18 +91,18 @@ const transposeCurrentPiece = (grid, currentPiece) => {
     removeCurrentMovingPieceFromGrid(grid, currentPiece);
 
     if (hasCurrentMovingPieceReachedBottom(grid, currentPiece)) {
+        removeAlternateFadeEffect(currentPiece);
         placePieceInGrid(grid, currentPiece);
         return null;
     }
 
-    for (let idx in currentPiece.indexes) {
-        currentPiece.indexes[idx][0] += 1;
+    currentPiece.indexes.forEach((idx) => idx[0] += 1);
 
-        let rowIndex = currentPiece.indexes[idx][0];
-        let colIndex = currentPiece.indexes[idx][1];
-
-        grid[rowIndex][colIndex] = currentPiece.code;
+    if (hasCurrentMovingPieceReachedBottom(grid, currentPiece)) {
+        addAlternateFadeEffect(currentPiece);
     }
+
+    placePieceInGrid(grid, currentPiece);
 
     return currentPiece;
 }
@@ -227,6 +219,14 @@ const rotatePiece = (grid, piece) => {
 
         if (canPieceRotate(newGrid, rotatedPiece) === true) {
             currentPiece.indexes = rotatedPiece;
+
+            if (hasCurrentMovingPieceReachedBottom(grid, currentPiece)) {
+                addAlternateFadeEffect(currentPiece);
+            }
+            else {
+                removeAlternateFadeEffect(currentPiece);
+            }
+
             piece.current = currentPiece;
             placePieceInGrid(newGrid, currentPiece);
             return newGrid;
@@ -254,8 +254,12 @@ const transposeGridDown = (grid, movingPiece) => {
     const newGrid = grid.slice(0, grid.length);
 
     if (!movingPiece.current) {
+        if (clearCompletedLines(newGrid) > 0) {
+            return transposeGridDown(newGrid, movingPiece);
+        }
         movingPiece.current = generateRandomPiece();
         placePieceInGrid(newGrid, movingPiece.current);
+
     }
     else {
         movingPiece.current = transposeCurrentPiece(newGrid, movingPiece.current);
@@ -263,11 +267,6 @@ const transposeGridDown = (grid, movingPiece) => {
         if (!movingPiece.current) {
             return transposeGridDown(newGrid, movingPiece);
         }
-    }
-
-    if (clearCompletedLines(newGrid) > 0) {
-        movingPiece.current = null;
-        return transposeGridDown(newGrid, movingPiece);
     }
 
     return newGrid;
@@ -282,8 +281,6 @@ function TetrisArea(props) {
 
     useEffect(() => {
         document.addEventListener('keydown', (event) => {
-            console.log(event);
-
             setGrid((currentGrid) => {
                 let nextGrid = currentGrid;
                 if (event.key === 'ArrowLeft') {

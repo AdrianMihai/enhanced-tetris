@@ -1,7 +1,17 @@
+@keyframes alternateFade {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
 #tetris-area {
     position: relative;
     max-width: 100%;
-    height: 75%;
+    height: 80%;
     margin: 0px auto;
     line-height: 5%;
 
@@ -22,7 +32,41 @@
         height: calc(5% - 4px);
         top: 0;
         left: 0;
+    }
+
+    .tetris-piece.alternate-fade {
+        animation-name: alternateFade;
+        animation-duration: .3s;
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+    }
+
+    .orange-piece {
         background: orange;
+    }
+
+    .violet-piece {
+        background: #9645ff;
+    }
+
+    .pink-piece {
+        background: #ff578c;
+    }
+
+    .bright-blue-piece {
+        background: #45d1ff;
+    }
+
+    .red-piece {
+        background: #ff4545;
+    }
+
+    .dark-blue-piece {
+        background: #5845ff;
+    }
+
+    .dark-green-piece {
+        background: #24a33d;
     }
 }
 
@@ -34,12 +78,18 @@
 
 @media (min-width: 900px) { 
     #tetris-area {
-        max-width: 60%;
+        max-width: 50%;
     }
 }
 
 @media (min-width: 1200px) { 
     #tetris-area {
         max-width: 40%;
+    }
+}
+
+@media (min-width: 1600px) { 
+    #tetris-area {
+        max-width: 30%;
     }
 }
