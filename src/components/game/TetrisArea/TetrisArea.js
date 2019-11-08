@@ -186,13 +186,21 @@ const moveCurrentMovingPiecetoRight = (grid, piece) => {
 
     return grid;
 }
+const isIndexOutOfGrid = (grid, rowIndex, colIndex) => {
+
+    return rowIndex < 0 || rowIndex >= grid.length || colIndex < 0 || colIndex >= grid[0].length;
+}
 
 const canPieceRotate = (grid, rotatedPieceIndices) => {
     for (let idx in rotatedPieceIndices) {
         const rowIndex = rotatedPieceIndices[idx][0];
         const colIndex = rotatedPieceIndices[idx][1];
 
-        if (grid[rowIndex][colIndex] > 0 || rowIndex < 0 || rowIndex >= grid.length || colIndex < 0 || colIndex >= grid[0].length) {
+        if (isIndexOutOfGrid(grid, rowIndex, colIndex)) {
+            return false;
+        }
+
+        if (grid[rowIndex][colIndex] > 0) {
             return false;
         }
     }
