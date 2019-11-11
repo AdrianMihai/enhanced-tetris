@@ -239,22 +239,37 @@ const rotatePiece = (grid, piece) => {
 
 const clearCompletedLines = (grid) => {
     let noClearedLines = 0;
+    let lowestClearedLinedIndex = -1;
 
     for (let i = 0; i < grid.length; i++) {
         if (grid[i].indexOf(0) === -1) {
             grid[i] = grid[i].map(() => 0);
             noClearedLines += 1;
+            lowestClearedLinedIndex = i;
         }
     }
 
-    return noClearedLines;
+    return [noClearedLines, lowestClearedLinedIndex];
+}
+
+const moveGridDownAboveLine = (grid, lineIndex, noLines = 1) => {
+
+    for (let i = lineIndex; i >= noLines; i--) {
+        for (let j = 0; j < grid[i].length; j++) {
+            grid[i][j] = grid[i - noLines][j];
+        }
+    }
+
 }
 
 const transposeGridDown = (grid, movingPiece) => {
     const newGrid = grid.slice(0, grid.length);
 
     if (!movingPiece.current) {
-        if (clearCompletedLines(newGrid) > 0) {
+        const [noClearedLines, lowestClearedLinedIndex] = clearCompletedLines(newGrid);
+
+        if (noClearedLines > 0) {
+            moveGridDownAboveLine(newGrid, lowestClearedLinedIndex, noClearedLines);
             return transposeGridDown(newGrid, movingPiece);
         }
         movingPiece.current = generateRandomPiece();
